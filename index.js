@@ -220,5 +220,5 @@ fastify.get("/removeAccount", async (req, res) => {
 
 
 fastify.listen({port: PORT}).then(() => {
-  console.log(`Server running at http://${DOMAIN}:3000/`);
+  console.log(`Server running at http://${DOMAIN}:${PORT}/`);
 });
