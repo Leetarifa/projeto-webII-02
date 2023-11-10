@@ -29,7 +29,7 @@ if (DOMAIN == undefined) {
 
 fastify.register(require("@fastify/view"), {
   engine: {
-    ejs: require("handlebars"),
+    handlebars: require("handlebars"),
   },
   root: path.join(__dirname, "views"), // Points to `./views` relative to the current file
   layout: "./layouts/layout", // Sets the layout to use to `./views/layouts/layout.handlebars` relative to the current file.
