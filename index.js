@@ -16,6 +16,7 @@ const db = getFirestore();
 
 const JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY;
 const DOMAIN = process.env.DOMAIN;
+const JWT_ISS = "pleading_face";
 
 if (JWT_PRIVATE_KEY == undefined) {
   throw Error("JWT_PRIVATE_KEY environment variable not set.");
@@ -48,11 +49,34 @@ fastify.register(require('@fastify/cookie'), {
 })
 
 
+async function getUserFromJwt(tokenStr) {
+  if (tokenStr == undefined || tokenStr == "") {
+    return undefined;
+  }
+
+  let token = jwt.verify(tokenStr, JWT_PRIVATE_KEY);
+  
+  if (token.iss != JWT_ISS) {
+    return undefined;
+  }
+
+  if (token.sub == undefined) {
+    return undefined;
+  }
+
+  return (await db.collection("users").where("name", "==", token.sub).get()).docs[0];
+}
+
+
 fastify.get("/login", async (req, res) => {
+  if ((await getUserFromJwt(req.cookies.jwt)) != undefined) return res.redirect("/").send();
+  
   return res.render("/login/index");
 });
 
 fastify.post("/login", async (req, res) => {
+  if ((await getUserFromJwt(req.cookies.jwt)) != undefined) return res.redirect("/").send();
+
   const users = await db.collection("users").where("name", "==", req.body.username).get();
   const user = users.docs[0];
 
@@ -62,8 +86,8 @@ fastify.post("/login", async (req, res) => {
 
   if (await bcrypt.compare(req.body.password.toString(), user.get("pass_hash"))) {
     var token = jwt.sign({
-      iss: "pleading_face",
-      sub: user.name
+      iss: JWT_ISS,
+      sub: user.get("name")
     }, JWT_PRIVATE_KEY, {algorithm: 'HS256'});
 
     res.setCookie("jwt", token, {
@@ -83,10 +107,14 @@ fastify.post("/login", async (req, res) => {
 });
 
 fastify.get("/registrar", async (req, res) => {
+  if ((await getUserFromJwt(req.cookies.jwt)) != undefined) return res.redirect("/").send();
+
   return res.render("/registrar/index");
 });
 
 fastify.post("/registrar", async (req, res) => {
+  if ((await getUserFromJwt(req.cookies.jwt)) != undefined) return res.redirect("/").send();
+
   const users = db.collection("users")
   const foundUsers = await users.where("name", "==", req.body.username).get();
 
@@ -104,6 +132,25 @@ fastify.post("/registrar", async (req, res) => {
   return res.status(302).redirect("/").send();
 });
 
+
+//not tested
+fastify.post("/addToFavorites", async (req, res) => {
+  const user = await getUserFromJwt(req.cookies.jwt);
+
+  if (user == undefined) {
+    return res.status(401).redirect("/login").send();
+  }
+
+  if (req.body.joke == undefined) {
+    return res.status(400).send("joke is undefined");
+  }
+
+  user.data["favorites"].push(req.body.joke);
+});
+
+fastify.get("/logout", async (req, res) => {
+  return res.setCookie("jwt", "", {maxAge: 0}).redirect("/login").send();
+});
 
 fastify.listen({port: 3000}).then(() => {
   console.log('Server running at http://localhost:3000/');
