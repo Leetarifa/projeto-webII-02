@@ -15,13 +15,16 @@
 </div>
 
 <script>
+  let removedBefore = [];
+
   const removeBtns = document.getElementsByClassName("remove");
   for (let btn of removeBtns) {
+    removedBefore.push(0);
     btn.onclick = async function () {
       const id = btn.nextElementSibling.innerHTML;
       let host = window.location.host;
       host.replace("localhost", "127.0.0.1");
-      const res = await fetch("http://" + host + `/removeFromFavorites/${id}`, {
+      const res = await fetch(window.location.protocol + "//" + host + `/removeFromFavorites/${id-removedBefore[id]}`, {
         method: "POST"
       });
 
@@ -31,6 +34,10 @@
           document.getElementById(`messageInner-${id}`).innerHTML = "";
         }, 2000)
         return;
+      }
+
+      for (let i = id; i < removedBefore.length; i++) {
+        removedBefore[i]++;
       }
 
       document.getElementById(`joke-${id}`).remove();
