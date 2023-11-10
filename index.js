@@ -30,7 +30,7 @@ fastify.register(require("@fastify/view"), {
     ejs: require("handlebars"),
   },
   root: path.join(__dirname, "views"), // Points to `./views` relative to the current file
-  // layout: "./templates/template", // Sets the layout to use to `./views/templates/layout.handlebars` relative to the current file.
+  layout: "./layouts/layout", // Sets the layout to use to `./views/layouts/layout.handlebars` relative to the current file.
   viewExt: "handlebars", // Sets the default extension to `.handlebars`
   propertyName: "render", // The template can now be rendered via `reply.render()` and `fastify.render()`
   defaultContext: {
@@ -82,8 +82,26 @@ fastify.post("/login", async (req, res) => {
   }
 });
 
-fastify.post("/registrar", async (req, res) => {
+fastify.get("/registrar", async (req, res) => {
+  return res.render("/registrar/index");
+});
 
+fastify.post("/registrar", async (req, res) => {
+  const users = db.collection("users")
+  const foundUsers = await users.where("name", "==", req.body.username).get();
+
+  if (foundUsers.docs.length > 0) {
+    return res.status(403).send("User with same name already exists.");
+  }
+
+  const pass_hash = await bcrypt.hash(req.body.password, await bcrypt.genSalt(12));
+
+  users.add({
+    name: req.body.username,
+    pass_hash: pass_hash
+  });
+
+  return res.status(302).redirect("/").send();
 });
 
 
