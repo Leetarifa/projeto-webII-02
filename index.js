@@ -210,7 +210,6 @@ fastify.get("/removeAccount", async (req, res) => {
   }
 
   await db.collection("users").doc(user.id).delete();
-
   return res.setCookie("jwt", "", {maxAge: 0}).redirect("/login").send();
 });
 
