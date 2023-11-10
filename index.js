@@ -15,8 +15,9 @@ initializeApp({
 const db = getFirestore();
 
 const JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY;
-const DOMAIN = process.env.DOMAIN;
+const DOMAIN = process.env.NODE_ENV == "development" ? "localhost" : process.env.DOMAIN;
 const JWT_ISS = "pleading_face";
+const PORT = process.env.NODE_ENV == "development" ? 3000 : 80;
 
 if (JWT_PRIVATE_KEY == undefined) {
   throw Error("JWT_PRIVATE_KEY environment variable not set.");
@@ -219,5 +220,5 @@ fastify.get("/removeAccount", async (req, res) => {
 
 
 fastify.listen({port: 3000}).then(() => {
-  console.log('Server running at http://localhost:3000/');
+  console.log(`Server running at http://${DOMAIN}:3000/`);
 });
