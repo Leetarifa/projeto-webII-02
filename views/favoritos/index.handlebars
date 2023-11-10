@@ -1,0 +1,43 @@
+<div class="card" style="width: 18rem;">
+  <div class="card-body">
+    <h5 class="card-title">Piadas Favoritadas</h5>
+    {{#each favorites}}
+      <div class="joke" id="joke-{{@index}}">
+        <div class="setup">{{setup}}</div>
+        <div class="delivery">{{delivery}}</div>
+        <button class="remove">Remover</button>
+        <span class="id" hidden>{{@index}}</span>
+        <div id="messageInner-{{@index}}"></div>
+      </div>
+      <div id="messageOuter-{{@index}}"></div>
+    {{/each}}
+  </div>
+</div>
+
+<script>
+  const removeBtns = document.getElementsByClassName("remove");
+  for (let btn of removeBtns) {
+    btn.onclick = async function () {
+      const id = btn.nextElementSibling.innerHTML;
+      let host = window.location.host;
+      host.replace("localhost", "127.0.0.1");
+      const res = await fetch("http://" + host + `/removeFromFavorites/${id}`, {
+        method: "POST"
+      });
+
+      if (res.status != 202) {
+        document.getElementById(`messageInner-${id}`).innerHTML = "Falha ao remover.";
+        setTimeout(() => {
+          document.getElementById(`messageInner-${id}`).innerHTML = "";
+        }, 2000)
+        return;
+      }
+
+      document.getElementById(`joke-${id}`).remove();
+      document.getElementById(`messageOuter-${id}`).innerHTML = "Removido com sucesso!"
+      setTimeout(() => {
+        document.getElementById(`messageOuter-${id}`).remove();
+      }, 2000)
+    }
+  }
+</script>

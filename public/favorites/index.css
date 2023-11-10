@@ -1,0 +1,15 @@
+.card {
+  margin: 150px auto;
+  min-width: 40%;
+}
+
+.card-title {
+  margin-bottom: 40px;
+}
+
+.joke {
+  border-width: 2px;
+  border-style: solid;
+  padding: 10px;
+  margin: 15px;
+}

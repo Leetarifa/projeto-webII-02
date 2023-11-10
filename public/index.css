@@ -1,0 +1,8 @@
+.card {
+  margin: 150px auto;
+  min-width: 40%;
+}
+
+.card-title {
+  margin-bottom: 40px;
+}

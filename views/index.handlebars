@@ -1,0 +1,69 @@
+<div class="card" style="width: 18rem;">
+  <div class="card-body">
+    <h5 class="card-title">Gerar Piadas</h5>
+    <div id="setup"></div>
+    <div id="delivery"></div>
+    <br>
+    <button class="btn btn-primary" id="generate">Gerar Piada</button>
+    <br><br>
+    <button class="btn btn-primary" id="favorite">Adicionar aos favoritos</button>
+    <br>
+    <span id="message"></span>
+  </div>
+</div>
+
+<script>
+  const generate = document.getElementById("generate");
+  const favorite = document.getElementById("favorite");
+  let jokeJson = undefined;
+  let jokeStr = undefined;
+  const setup = document.getElementById("setup");
+  const delivery = document.getElementById("delivery");
+  const message = document.getElementById("message");
+
+  const utf8Decoder = new TextDecoder();
+
+  generate.onclick = async function () {
+    const res = await fetch("https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&type=twopart", {method: "GET"});
+  
+    jokeStr = utf8Decoder.decode((await res.body.getReader().read()).value)
+    jokeJson = JSON.parse(jokeStr);
+    
+    setup.innerHTML = jokeJson.setup;
+    delivery.innerHTML = jokeJson.delivery;
+  }
+
+  favorite.onclick = async function () {
+    if (jokeStr == undefined) {
+      message.innerHTML = "nenhuma piada selecionada";
+      setTimeout(() => {
+        message.innerHTML = "";
+      }, 2000);
+      return;
+    }
+
+    console.log(jokeStr);
+
+    let host = window.location.host;
+    host.replace("localhost", "127.0.0.1");
+    const res = await fetch("http://" + host + "/addToFavorites", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: `{"joke": ${JSON.stringify(jokeJson)}}`
+    });
+
+    if (res.status == 201) {
+      message.innerHTML = "Adicionado com sucesso!"
+      setTimeout(() => {
+        message.innerHTML = "";
+      }, 2000);
+    } else {
+      message.innerHTML = "Falha ao adicionar"
+      setTimeout(() => {
+        message.innerHTML = "";
+      }, 2000);
+    }
+  }
+</script>

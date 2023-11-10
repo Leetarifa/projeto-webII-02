@@ -48,8 +48,13 @@ fastify.register(require('@fastify/cookie'), {
   parseOptions: {}  // options for parsing cookies
 })
 
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, 'public'),
+  prefix: '/public/', // optional: default '/'
+  constraints: {} // optional: default {}
+})
 
-async function getUserFromJwt(tokenStr) {
+function getUserNameFromJwt(tokenStr) {
   if (tokenStr == undefined || tokenStr == "") {
     return undefined;
   }
@@ -64,14 +69,27 @@ async function getUserFromJwt(tokenStr) {
     return undefined;
   }
 
-  return (await db.collection("users").where("name", "==", token.sub).get()).docs[0];
+  return token.sub;
 }
+
+async function getUserFromJwt(tokenStr) {
+  const name = getUserNameFromJwt(tokenStr);
+  if (name == undefined) return undefined;
+  return (await db.collection("users").where("name", "==", name).get()).docs[0];
+}
+
+
+fastify.get("/", async (req, res) => {
+  if ((await getUserFromJwt(req.cookies.jwt)) == undefined) return res.redirect("/login").send();
+
+  return res.render("/index", {styles: "/public/index.css", userIsLogged: true});
+});
 
 
 fastify.get("/login", async (req, res) => {
   if ((await getUserFromJwt(req.cookies.jwt)) != undefined) return res.redirect("/").send();
   
-  return res.render("/login/index");
+  return res.render("/login/index", {styles: "public/login/index.css", userIsLogged: false});
 });
 
 fastify.post("/login", async (req, res) => {
@@ -109,7 +127,7 @@ fastify.post("/login", async (req, res) => {
 fastify.get("/registrar", async (req, res) => {
   if ((await getUserFromJwt(req.cookies.jwt)) != undefined) return res.redirect("/").send();
 
-  return res.render("/registrar/index");
+  return res.render("/registrar/index", {styles: "/public/login/index.css", userIsLogged: false});
 });
 
 fastify.post("/registrar", async (req, res) => {
@@ -126,7 +144,8 @@ fastify.post("/registrar", async (req, res) => {
 
   users.add({
     name: req.body.username,
-    pass_hash: pass_hash
+    pass_hash: pass_hash,
+    favorites: [],
   });
 
   return res.status(302).redirect("/").send();
@@ -145,12 +164,54 @@ fastify.post("/addToFavorites", async (req, res) => {
     return res.status(400).send("joke is undefined");
   }
 
-  user.data["favorites"].push(req.body.joke);
+  let arr = user.get("favorites");
+  arr.push(req.body.joke);
+
+  await db.collection("users").doc(user.id).update({favorites: arr});
+
+  return res.status(201).send();
 });
+
+fastify.post("/removeFromFavorites/:id", async (req, res) => {
+  const user = await getUserFromJwt(req.cookies.jwt);
+  if (user == undefined) {
+    return res.status(401).redirect("/login").send();
+  }
+
+  const {id} = req.params;
+
+  let arr = user.get("favorites");
+  arr.splice(id, id+1);
+
+  await db.collection("users").doc(user.id).update({favorites: arr});
+
+  return res.status(202).send();
+});
+
+fastify.get("/favoritos", async (req, res) => {
+  const user = await getUserFromJwt(req.cookies.jwt);
+  if (user == undefined) {
+    return res.status(401).redirect("/login").send();
+  }
+
+  return res.render("/favoritos/index", {favorites: user.get("favorites"), styles: "/public/favorites/index.css", userIsLogged: true});
+});
+
 
 fastify.get("/logout", async (req, res) => {
   return res.setCookie("jwt", "", {maxAge: 0}).redirect("/login").send();
 });
+
+
+
+
+
+
+
+
+
+
+
 
 fastify.listen({port: 3000}).then(() => {
   console.log('Server running at http://localhost:3000/');

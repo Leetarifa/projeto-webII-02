@@ -1,16 +1,25 @@
-
-<form action="/registrar" method="post">
-  <div class="row mb-3">
-    <label for="inputEmail3" class="col-sm-2 col-form-label">Nome</label>
-    <div class="col-sm-10">
-      <input type="text" class="form-control" id="inputEmail3" name="username">
+<div id="form" class="card">
+    <div class="card-header text-center">
+        <h1>Registrar</h1>
     </div>
+    <br>
+    <form action="/registrar" method="post">
+      <div class="row mb-3 text-center">
+        <label for="inputEmail3" class="col-sm-2 col-form-label">Nome:</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="inputEmail3" name="username">
+        </div>
+      </div>
+      <div class="row mb-3 text-center">
+        <label for="inputPassword3" class="col-sm-2 col-form-label">Senha:</label>
+        <div class="col-sm-10">
+          <input type="password" class="form-control" id="inputPassword3" name="password">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Registrar</button>
+      <br><br>
+      <div>Já possui cadastro?</div>
+      <a href="/login" class="btn btn-primary">Entrar</a>
+    </form>
   </div>
-  <div class="row mb-3">
-    <label for="inputPassword3" class="col-sm-2 col-form-label">Senha</label>
-    <div class="col-sm-10">
-      <input type="password" class="form-control" id="inputPassword3" name="password">
-    </div>
-  </div>
-  <button type="submit" class="btn btn-primary">Cadastrar</button>
-</form>
+</div>

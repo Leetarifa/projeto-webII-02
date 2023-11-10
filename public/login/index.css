@@ -1,0 +1,9 @@
+.card {
+  max-width: 60%;
+  margin: 100px auto;
+  padding: 20px;
+}
+
+button {
+  max-width: fit-content;
+}
