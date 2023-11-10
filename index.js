@@ -99,7 +99,7 @@ fastify.post("/login", async (req, res) => {
   const user = users.docs[0];
 
   if (user == undefined) {
-    return res.status(404).send("User not found");
+    return res.status(404).render("/login/index", {styles: "public/login/index.css", userIsLogged: false, message: "Usuário não encontrado"});
   }
 
   if (await bcrypt.compare(req.body.password.toString(), user.get("pass_hash"))) {
@@ -120,7 +120,7 @@ fastify.post("/login", async (req, res) => {
     return res.status(302).redirect("/").send();
 
   } else {
-    return res.status(401).send("Incorrect password");
+    return res.status(401).render("/login/index", {styles: "public/login/index.css", userIsLogged: false, message: "Senha Incorreta"});
   }
 });
 
@@ -137,7 +137,7 @@ fastify.post("/registrar", async (req, res) => {
   const foundUsers = await users.where("name", "==", req.body.username).get();
 
   if (foundUsers.docs.length > 0) {
-    return res.status(403).send("User with same name already exists.");
+    return res.status(403).render("/registrar/index", {styles: "/public/login/index.css", userIsLogged: false, message: "Usuário com este nome já existe"});
   }
 
   const pass_hash = await bcrypt.hash(req.body.password, await bcrypt.genSalt(12));
@@ -202,11 +202,16 @@ fastify.get("/logout", async (req, res) => {
   return res.setCookie("jwt", "", {maxAge: 0}).redirect("/login").send();
 });
 
+fastify.get("/removeAccount", async (req, res) => {
+  const user = await getUserFromJwt(req.cookies.jwt);
+  if (user == undefined) {
+    return res.status(401).redirect("/login").send();
+  }
 
+  await db.collection("users").doc(user.id).delete();
 
-
-
-
+  return res.setCookie("jwt", "", {maxAge: 0}).redirect("/login").send();
+});
 
 
 

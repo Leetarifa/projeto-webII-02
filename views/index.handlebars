@@ -17,6 +17,8 @@
   const favorite = document.getElementById("favorite");
   let jokeJson = undefined;
   let jokeStr = undefined;
+  let prevAddedJokeStr = undefined;
+  let timeoutId = setTimeout(() => {}, 1000000000);
   const setup = document.getElementById("setup");
   const delivery = document.getElementById("delivery");
   const message = document.getElementById("message");
@@ -35,8 +37,18 @@
 
   favorite.onclick = async function () {
     if (jokeStr == undefined) {
-      message.innerHTML = "nenhuma piada selecionada";
-      setTimeout(() => {
+      message.innerHTML = "Nenhuma piada selecionada";
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        message.innerHTML = "";
+      }, 2000);
+      return;
+    }
+
+    if (prevAddedJokeStr == jokeStr) {
+      message.innerHTML = "Você já adicionou esta piada";
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
         message.innerHTML = "";
       }, 2000);
       return;
@@ -56,12 +68,15 @@
 
     if (res.status == 201) {
       message.innerHTML = "Adicionado com sucesso!"
-      setTimeout(() => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
         message.innerHTML = "";
       }, 2000);
+      prevAddedJokeStr = jokeStr;
     } else {
       message.innerHTML = "Falha ao adicionar"
-      setTimeout(() => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
         message.innerHTML = "";
       }, 2000);
     }
