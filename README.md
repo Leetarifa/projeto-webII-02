@@ -1,4 +1,4 @@
-# pleading_face 🥺
+# projeto-web-II-02
 
 thingy that gets jokes from [jokeapi](https://v2.jokeapi.dev/) and lets you favourite them
 
